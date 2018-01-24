@@ -38,7 +38,7 @@ create_signed_url() {
 }
 
 output() {
-    local base_url="https://${S3_BUCKET}.s3.amazonaws.com/${S3_OBJECT}"
+    local base_url="https://${S3_BUCKET}.object.pouta.csc.fi/${S3_OBJECT}"
     local params="AWSAccessKeyId=${S3_ACCESS_KEY}&Expires=${TIMESTAMP}&Signature=${SIGNATURE}"
     echo "$base_url?$params"
 }
