@@ -98,6 +98,7 @@ fi
 if [ -z "$S3_HOSTNAME" ]; then
     echo "Please provide an endpoint."
     exit 5
+fi
 
 create_signed_url
 output
