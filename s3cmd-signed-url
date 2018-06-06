@@ -5,13 +5,14 @@
 set -e
 
 usage() {
-    echo "$(basename ${0}) -b bucket -o object_uri_part [-a access_key] [-s seconds]"
+    echo "$(basename ${0}) -b bucket -o object_uri_part -e endpoint [-a access_key] [-s seconds]"
     echo "- a script to create temporary signed urls for private objects in a S3 bucket."
     echo ""
     echo "Options:"
     echo "  -b bucket_name: S3 Bucket"
     echo "  -o object_uri: URI part of object in S3 bucket - e.g. somefolder/somefile.ext"
     echo "  -m http_method: HTTP method to sign - e.g. PUT (default ${S3_HTTP_METHOD})"
+    echo "  -e endpoint: hostname to call - e.g. PUT (default ${S3_HOSTNAMAE})"
     echo "  -a access_key: S3 Access Key (default ${S3_ACCESS_KEY})"
     echo "  -s seconds: how long the signed url will be valid (default ${SECONDS})"
     echo "  -h: to see this text"
@@ -38,7 +39,7 @@ create_signed_url() {
 }
 
 output() {
-    local base_url="https://${S3_BUCKET}.object.pouta.csc.fi/${S3_OBJECT}"
+    local base_url="https://${S3_BUCKET}.${S3_HOSTNAME}/${S3_OBJECT}"
     local params="AWSAccessKeyId=${S3_ACCESS_KEY}&Expires=${TIMESTAMP}&Signature=${SIGNATURE}"
     echo "$base_url?$params"
 }
@@ -47,7 +48,7 @@ set_access_key
 SECONDS=3600
 S3_HTTP_METHOD="GET"
 
-while getopts "hb:o:m:a:s:" OPT; do
+while getopts "hb:o:m:e:a:s:" OPT; do
     case "$OPT" in
         h)
             usage
@@ -61,6 +62,9 @@ while getopts "hb:o:m:a:s:" OPT; do
             ;;
         m)
             S3_HTTP_METHOD="${OPTARG}"
+            ;;
+        e)
+            S3_HOSTNAME="${OPTARG}"
             ;;
         a)
             S3_ACCESS_KEY="${OPTARG}"
@@ -90,6 +94,10 @@ if [ "$S3_HTTP_METHOD" != "GET" -a "$S3_HTTP_METHOD" != "PUT" ]; then
     echo "HTTP method is unknown: '$S3_HTTP_METHOD' (use GET or PUT)"
     exit 4
 fi
+
+if [ -z "$S3_HOSTNAME" ]; then
+    echo "Please provide an endpoint."
+    exit 5
 
 create_signed_url
 output
